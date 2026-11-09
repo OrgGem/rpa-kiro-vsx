@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output (compiled from src/ by `npm run compile`)
+dist/
+out/
+build/
+*.tsbuildinfo
+
+# Packaged release artifacts
+*.vsix
+release/
+
+# Test / coverage artifacts
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

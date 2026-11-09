@@ -1,0 +1,124 @@
+const assert = require('node:assert/strict');
+const { existsSync } = require('node:fs');
+const { createInterface } = require('node:readline');
+
+const args = process.argv.slice(2);
+const oldCli = existsSync('.legacy-acp');
+if (args[0] === '--help') {
+    process.stdout.write(oldCli ? 'Usage: kiro-cli acp\n' : 'Options:\n  --agent-engine <ENGINE>\n');
+    process.exit(0);
+}
+const engine = oldCli || args[0] === '--agent-engine=v2' ? 'v2' : 'v3';
+
+const send = message => process.stdout.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\n');
+const result = (id, value) => send({ id, result: value });
+const update = (sessionId, fields) => send({
+    method: 'session/update',
+    params: { sessionId, update: fields },
+});
+const chunk = (sessionId, role, text) => update(sessionId, {
+    sessionUpdate: role + '_message_chunk',
+    content: { type: 'text', text },
+});
+const configs = model => [{
+    id: 'model', name: 'Model', category: 'model', type: 'select', currentValue: model,
+    options: [{ value: 'model-a', name: 'Model A' }, { value: 'model-b', name: 'Model B' }],
+}];
+const models = currentModelId => ({
+    currentModelId,
+    availableModels: configs(currentModelId)[0].options.map(({ value, name }) => ({ modelId: value, name })),
+});
+let pending;
+
+createInterface({ input: process.stdin }).on('line', line => {
+    const { id, method, params, result: clientResult } = JSON.parse(line);
+    switch (method) {
+        case 'initialize':
+            assert.equal(params.protocolVersion, 1);
+            if (oldCli) {
+                assert.deepEqual(args, []);
+            } else if (engine === 'v2') {
+                assert.deepEqual(args, ['--agent-engine=v2', '--agent', 'example-agent']);
+            } else {
+                assert.deepEqual(args, ['--agent-engine=v3']);
+            }
+            result(id, {
+                protocolVersion: 1,
+                agentCapabilities: engine === 'v2'
+                    ? { loadSession: true } : { loadSession: true, sessionCapabilities: { list: {} } },
+            });
+            break;
+        case 'session/new':
+            assert.equal(params.cwd, process.cwd());
+            assert.deepEqual(params.mcpServers, []);
+            result(id, {
+                sessionId: 'live',
+                ...(engine === 'v2' ? { models: models('model-a') } : { configOptions: configs('model-a') }),
+            });
+            break;
+        case 'session/list':
+            assert.equal(engine, 'v3');
+            assert.equal(params.cwd, process.cwd());
+            result(id, params.cursor ? { sessions: [] } : {
+                sessions: [{ cwd: process.cwd(), sessionId: 'past', title: 'Earlier chat' }],
+                nextCursor: 'more',
+            });
+            break;
+        case 'session/load':
+            assert.equal(params.sessionId, 'past');
+            chunk('past', 'user', 'Previous question');
+            chunk('past', 'agent', 'Previous answer');
+            chunk('other', 'agent', 'Ignore other sessions');
+            result(id, engine === 'v2' ? { models: models('model-b') } : {});
+            break;
+        case 'session/set_config_option':
+            assert.equal(engine, 'v3');
+            assert.equal(params.configId, 'model');
+            assert.equal(params.value, 'model-b');
+            result(id, { configOptions: configs(params.value) });
+            break;
+        case 'session/set_model':
+            assert.equal(engine, 'v2');
+            assert.deepEqual(params, { sessionId: 'live', modelId: 'model-b' });
+            result(id, {});
+            break;
+        case 'session/prompt':
+            assert.equal(params.sessionId, 'live');
+            assert.equal(params.prompt[0].type, 'text');
+            assert.equal(typeof params.prompt[0].text, 'string');
+            if (params.prompt[0].text === 'Exit') {
+                process.exit(17);
+            }
+            chunk('live', 'agent', 'Xin ');
+            update('live', { sessionUpdate: 'tool_call', toolCallId: 'tool-1', title: 'Run tests', status: 'pending' });
+            pending = { id, cancelled: false };
+            send({
+                id: 'permission', method: 'session/request_permission',
+                params: {
+                    sessionId: 'live', toolCall: { toolCallId: 'tool-1', title: 'Run tests' },
+                    options: [
+                        { optionId: 'allow', name: 'Allow', kind: 'allow_once' },
+                        { optionId: 'deny', name: 'Deny', kind: 'reject_once' },
+                    ],
+                    _meta: { kiro: { consent: { triggeringResource: 'npm test' } } },
+                },
+            });
+            break;
+        case 'session/cancel':
+            assert.equal(id, undefined);
+            assert.equal(params.sessionId, 'live');
+            pending.cancelled = true;
+            break;
+        default:
+            assert.equal(id, 'permission');
+            if (pending.cancelled) {
+                assert.equal(clientResult.outcome.outcome, 'cancelled');
+            } else {
+                assert.deepEqual(clientResult.outcome, { outcome: 'selected', optionId: 'allow' });
+                update('live', { sessionUpdate: 'tool_call_update', toolCallId: 'tool-1', status: 'completed' });
+                chunk('live', 'agent', 'chào!');
+            }
+            result(pending.id, { stopReason: pending.cancelled ? 'cancelled' : 'end_turn' });
+            pending = undefined;
+    }
+});

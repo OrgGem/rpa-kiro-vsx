@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Kiro CLI ACP",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "preLaunchTask": "npm: compile",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    }
+  ]
+}

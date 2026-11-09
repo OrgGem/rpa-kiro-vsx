@@ -1,0 +1,65 @@
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    margin: 0;
+    padding: 0;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font: var(--vscode-font-size) var(--vscode-font-family);
+}
+header, #composer {
+    padding: 12px 16px;
+    background: var(--vscode-sideBar-background);
+}
+header { border-bottom: 1px solid var(--vscode-panel-border); }
+.heading, nav, .actions, .draft-offer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.draft-offer { margin-bottom: 8px; }
+h1, h2, p { margin: 0; }
+h1 { font-size: 1.25em; }
+h2 { margin-bottom: 6px; font-size: 1em; }
+nav { margin-top: 10px; }
+#folder, #configuration, #session, .tool, #welcome { color: var(--vscode-descriptionForeground); }
+#configuration:not(:empty), #session:not(:empty) { margin-top: 6px; overflow-wrap: anywhere; }
+#transcript { overflow: auto; padding: 16px; }
+article, .tool { margin-bottom: 12px; }
+article {
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+article p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.user { background: var(--vscode-sideBar-background); }
+.tool { padding-inline: 12px; overflow-wrap: anywhere; }
+#composer { border-top: 1px solid var(--vscode-panel-border); }
+label { display: block; margin-bottom: 6px; }
+textarea {
+    width: 100%;
+    resize: vertical;
+    max-height: 30vh;
+    padding: 8px;
+    color: var(--vscode-input-foreground);
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+    font: inherit;
+}
+.actions { margin-top: 8px; }
+#status { flex: 1 1 12em; overflow-wrap: anywhere; }
+.error { color: var(--vscode-errorForeground); }
+button {
+    padding: 4px 10px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: 3px;
+    color: var(--vscode-button-secondaryForeground);
+    background: var(--vscode-button-secondaryBackground);
+    font: inherit;
+    cursor: pointer;
+}
+button:hover { background: var(--vscode-button-secondaryHoverBackground); }
+button.primary { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+button.primary:hover { background: var(--vscode-button-hoverBackground); }
+button:disabled { opacity: 0.55; cursor: default; }
+:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 2px; }
+[hidden] { display: none !important; }

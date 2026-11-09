@@ -1,0 +1,234 @@
+{
+  "name": "rpa-kiro-vsx",
+  "displayName": "Kiro CLI ACP",
+  "description": "Chat with Kiro CLI in VS Code over the Agent Client Protocol.",
+  "version": "0.5.0",
+  "publisher": "OrgGem",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OrgGem/rpa-kiro-vsx.git"
+  },
+  "engines": {
+    "vscode": "^1.105.0",
+    "node": ">=22"
+  },
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
+  },
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "rpaKiro.openChat",
+        "title": "Kiro CLI: Open Chat"
+      },
+      {
+        "command": "rpaKiro.showOutput",
+        "title": "Kiro CLI: Show Output"
+      },
+      {
+        "command": "rpaKiro.checkDirectConnection",
+        "title": "Kiro CLI: Check Direct Kiro Connection"
+      },
+      {
+        "command": "rpaKiro.refreshSpecs",
+        "title": "Kiro Specs: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "rpaKiro.runSpecTask",
+        "title": "Run Task with Kiro",
+        "icon": "$(play)"
+      },
+      {
+        "command": "rpaKiro.prepareSpec",
+        "title": "Prepare Spec Prompt…",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "rpaKiro.previewSteeringPack",
+        "title": "Kiro Steering: Preview Local Pack…",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "rpaKiro.applySteeringPack",
+        "title": "Apply Reviewed Pack",
+        "icon": "$(check)"
+      },
+      {
+        "command": "rpaKiro.discardSteeringPack",
+        "title": "Discard Pack Preview",
+        "icon": "$(close)"
+      },
+      {
+        "command": "rpaKiro.validateFile",
+        "title": "Kiro Quality: Validate Current File"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rpa-kiro-specs",
+          "title": "Kiro Specs",
+          "icon": "media/specs.svg"
+        },
+        {
+          "id": "rpa-kiro-steering",
+          "title": "Kiro Steering",
+          "icon": "$(settings-gear)"
+        }
+      ]
+    },
+    "views": {
+      "rpa-kiro-specs": [
+        {
+          "id": "rpaKiro.specs",
+          "name": "Spec Explorer"
+        }
+      ],
+      "rpa-kiro-steering": [
+        {
+          "id": "rpaKiro.steering",
+          "name": "Steering and Quality"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "rpaKiro.specs",
+        "contents": "Open a workspace containing spec files in `.kiro/specs/` to browse them here.\n[Refresh Specs](command:rpaKiro.refreshSpecs)"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "rpaKiro.runSpecTask",
+          "when": "false"
+        },
+        {
+          "command": "rpaKiro.prepareSpec",
+          "when": "false"
+        },
+        {
+          "command": "rpaKiro.applySteeringPack",
+          "when": "false"
+        },
+        {
+          "command": "rpaKiro.discardSteeringPack",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "rpaKiro.refreshSpecs",
+          "when": "view == rpaKiro.specs",
+          "group": "navigation"
+        },
+        {
+          "command": "rpaKiro.previewSteeringPack",
+          "when": "view == rpaKiro.steering",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "rpaKiro.runSpecTask",
+          "when": "view == rpaKiro.specs && viewItem == kiroSpecTask",
+          "group": "inline"
+        },
+        {
+          "command": "rpaKiro.prepareSpec",
+          "when": "view == rpaKiro.specs && viewItem == kiroSpec",
+          "group": "inline"
+        },
+        {
+          "command": "rpaKiro.applySteeringPack",
+          "when": "view == rpaKiro.steering && viewItem == steeringPack",
+          "group": "inline@1"
+        },
+        {
+          "command": "rpaKiro.discardSteeringPack",
+          "when": "view == rpaKiro.steering && viewItem == steeringPack",
+          "group": "inline@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "rpaKiro.openChat",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Kiro CLI ACP",
+      "properties": {
+        "rpaKiro.cliPath": {
+          "type": "string",
+          "default": "kiro-cli",
+          "scope": "machine",
+          "description": "Executable name or absolute path to Kiro CLI on the extension host."
+        },
+        "rpaKiro.engine": {
+          "type": "string",
+          "enum": [
+            "v3",
+            "v2"
+          ],
+          "default": "v3",
+          "scope": "machine",
+          "description": "Kiro CLI agent harness. Close and reopen the Kiro chat after changing this setting."
+        },
+        "rpaKiro.directProxyUrl": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Optional HTTP or HTTPS CONNECT proxy URL for requests sent directly by the extension to Kiro. An empty value uses VS Code networking. This setting does not configure the Kiro CLI agent."
+        },
+        "rpaKiro.acpArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "machine",
+          "description": "Extra ACP arguments. An explicitly selected engine overrides any --agent-engine flag here. With no explicit engine setting, an explicitly configured array is used as the full ACP argument list for compatibility."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "test": "npm run compile && node --test test/cli.test.cjs test/kiro-network.test.cjs test/spec-tasks.test.cjs test/steering.test.cjs",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --out dist/rpa-kiro-vsx.vsix"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "2.4.0",
+    "re2-wasm": "1.0.2",
+    "undici": "7.30.2",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.105.0",
+    "@vscode/vsce": "4.1.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "minimatch": "11.0.5"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ]
+}

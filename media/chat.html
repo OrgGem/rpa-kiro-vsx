@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{csp}}; script-src {{csp}};">
+    <link rel="stylesheet" href="{{style}}">
+    <title>Kiro CLI Chat</title>
+</head>
+<body>
+    <header>
+        <div class="heading"><h1>Kiro CLI</h1><span id="folder"></span></div>
+        <nav aria-label="Session actions">
+            <button id="new" type="button">New chat</button>
+            <button id="load" type="button">Open session</button>
+            <button id="configure" type="button" hidden>Configure</button>
+            <button id="output" type="button">Output</button>
+        </nav>
+        <div id="configuration"></div>
+        <div id="session"></div>
+    </header>
+    <main id="transcript" role="log" aria-label="Conversation">
+        <p id="welcome">Ask Kiro about this workspace. Kiro CLI connects when you send your first message.</p>
+    </main>
+    <form id="composer">
+        <div id="draft-offer" class="draft-offer" hidden>
+            <span role="status">A spec prompt is ready. Replace your current draft?</span>
+            <button id="accept-draft" type="button">Replace draft</button>
+            <button id="dismiss-draft" type="button">Dismiss</button>
+        </div>
+        <label for="prompt">Message Kiro</label>
+        <textarea id="prompt" rows="3" placeholder="Ask about this project…" required></textarea>
+        <div class="actions">
+            <span id="status" role="status">Ready</span>
+            <button id="stop" type="button" hidden>Stop</button>
+            <button id="send" class="primary" type="submit">Send</button>
+        </div>
+    </form>
+    <script src="{{script}}"></script>
+</body>
+</html>
